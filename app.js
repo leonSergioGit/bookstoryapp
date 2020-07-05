@@ -28,6 +28,9 @@ if(process.env.NODE_ENV === 'development') {
     app.use(morgan('dev'))
 }
 
+//Handlebars helpers
+const { formatDate, stripTags, truncate, editIcon, select } = require('./helpers/hbs');
+
 //Session
 app.use(session({
     secret: 'keyboard cat',
@@ -37,13 +40,33 @@ app.use(session({
 }))
 
 //Handlebars
-app.engine('.hbs', exphbs({defaultLayout: 'main', extname: '.hbs'}));
+app.engine(
+    '.hbs', 
+    exphbs({
+        helpers: {
+            formatDate,
+            stripTags,
+            truncate,
+            editIcon,
+            select
+        },
+        defaultLayout: 'main', 
+        extname: '.hbs'
+    })
+);
+
 app.set('view engine', '.hbs');
 
 
 //Passport middleware
 app.use(passport.initialize());
 app.use(passport.session());
+
+//Set global var
+app.use(function(req, res, next) {
+    res.locals.user = req.user || null;
+    next();
+})
 
 //Static folder
 app.use(express.static(path.join(__dirname, 'public')));
